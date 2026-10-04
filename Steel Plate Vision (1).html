@@ -1,0 +1,824 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Steel Plate Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Prompt:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one scrolling story, six chapters. Each chapter = question, one-line finding, evidence panels. */
+:root{
+  --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f0efeb;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.12);
+  --rust:#eb6834; --crack:#2a78d6; --ai:#1baf7a; --neutral:#898781;
+  --on-rust:#0b0b0b; --on-crack:#ffffff;
+  --good:#006300; --bad:#d03b3b;
+  --f-body:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-head:"Prompt","IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#242423;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.12);
+    --rust:#d95926; --crack:#3987e5; --ai:#199e70; --neutral:#898781;
+    --on-rust:#ffffff; --on-crack:#ffffff;
+    --good:#0ca30c; --bad:#e25555;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#242423;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.12);
+  --rust:#d95926; --crack:#3987e5; --ai:#199e70; --neutral:#898781;
+  --on-rust:#ffffff; --on-crack:#ffffff;
+  --good:#0ca30c; --bad:#e25555;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px}
+h1,h2,h3,p,ol,ul{margin:0}
+h1,h2{font-family:var(--f-head);font-weight:600;text-wrap:balance}
+h1{font-size:clamp(24px,4.6vw,38px);line-height:1.25;max-width:26ch}
+h2{font-size:clamp(20px,3.6vw,27px);line-height:1.35}
+h3{font-size:15px;font-weight:600;line-height:1.4}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* masthead */
+.mast{padding-block:36px 28px;display:grid;gap:12px}
+.eyebrow{font-size:13px;color:var(--ink-2);letter-spacing:.04em}
+.lede{color:var(--ink-2);max-width:62ch}
+.synth{font-size:12.5px;color:var(--ink-2);display:inline-block;border:1px solid var(--border);padding:2px 10px;border-radius:999px;justify-self:start}
+
+/* chapter nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--page);border-block:1px solid var(--border)}
+.nav ol{display:flex;gap:4px;overflow-x:auto;list-style:none;padding:8px 0;scrollbar-width:none}
+.nav ol::-webkit-scrollbar{display:none}
+.nav a{display:flex;gap:7px;align-items:center;padding:5px 12px 5px 6px;border-radius:999px;font-size:13px;white-space:nowrap;color:var(--ink-2);text-decoration:none}
+.nav a b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface-2);font-size:11px;font-weight:600;color:var(--ink)}
+.nav a[aria-current="true"]{background:var(--ink);color:var(--page)}
+.nav a[aria-current="true"] b{background:var(--page);color:var(--ink)}
+
+/* chapters */
+.chap{padding-block:52px 8px;scroll-margin-top:56px;display:grid;gap:20px}
+.chap-h{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+.num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--page);font:600 15px var(--f-head);margin-top:2px}
+.q{font-size:13px;color:var(--ink-2);letter-spacing:.04em}
+.lead{color:var(--ink-2);max-width:68ch}
+.sub-h{font-family:var(--f-head);font-weight:600;font-size:17px;margin-top:12px}
+
+/* panels */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 16px 12px;min-width:0;display:grid;gap:10px;align-content:start}
+.panel-h{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.panel-h p{font-size:13px;color:var(--ink-2);margin-top:2px}
+.tbl-btn{flex:none;font-size:12.5px;padding:3px 10px;border:1px solid var(--border);background:transparent;border-radius:4px;cursor:pointer;color:var(--ink-2)}
+.tbl-btn:hover{background:var(--surface-2)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;list-style:none;padding:0;font-size:12.5px;color:var(--ink-2)}
+.legend:empty{display:none}
+.key{display:inline-block;vertical-align:middle;margin-right:6px}
+.key.rect{width:10px;height:10px;border-radius:2px}
+.key.line{width:16px;height:2px;border-radius:1px;margin-bottom:2px}
+.chart{min-width:0}
+.chart svg{display:block;overflow:visible}
+.panel-foot{font-size:13px;color:var(--ink-2)}
+.panel-foot:empty{display:none}
+.panel-foot ol{padding-left:0;list-style:none;display:grid;gap:4px}
+.panel-foot li{display:flex;gap:8px;align-items:baseline}
+.ev{display:inline-grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;background:var(--ink);color:var(--page);font:600 11px var(--f-body)}
+
+/* svg text and strokes */
+.tx{fill:var(--ink-2);font:11px var(--f-body)}
+.tx2{fill:var(--muted);font:10.5px var(--f-body)}
+.val{fill:var(--ink);font:600 11.5px var(--f-body);paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+.gl{stroke:var(--grid);stroke-width:1}
+.bl{stroke:var(--axis);stroke-width:1}
+.wash{fill:var(--surface-2)}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.evl{stroke:var(--axis);stroke-width:1}
+.dim{stroke:var(--ink-2);stroke-width:1}
+.hov{fill:transparent}
+.xh{stroke:var(--ink-2);stroke-width:1}
+.evn{fill:var(--ink)}
+.evt{fill:var(--page);font:600 10.5px var(--f-body)}
+
+/* tooltip */
+#tip{position:fixed;z-index:60;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.45;box-shadow:0 4px 18px rgba(0,0,0,.16);max-width:260px}
+.tip-h{font-weight:600;margin-bottom:4px}
+.tip-r{display:flex;gap:7px;align-items:baseline}
+.tip-r i{flex:none;width:12px;height:3px;border-radius:2px;align-self:center}
+.tip-r b{font-weight:600}
+.tip-r span{color:var(--ink-2)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+thead th{font-weight:600;color:var(--ink-2);font-size:12.5px;white-space:normal}
+tbody th{font-weight:400}
+.grp td{background:var(--surface-2);font-weight:600;font-size:12.5px;color:var(--ink-2);text-align:left}
+.dl{font-weight:600}
+.dl.good{color:var(--good)}
+.dl.bad{color:var(--bad)}
+.heat td,.heat th{text-align:center;padding:0}
+.heat th:first-child{text-align:left;padding:8px 10px}
+.heat thead th{padding:8px 4px}
+.hc{display:block;padding:12px 4px;font-weight:600;font-size:14px;margin:1px}
+
+/* chapter 1 */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:20px 40px;align-items:center;padding-block:4px}
+@media (max-width:640px){.hero{grid-template-columns:1fr}}
+.big{font-weight:600;font-size:clamp(64px,13vw,92px);line-height:1;letter-spacing:-.02em}
+.big-l{max-width:22ch;color:var(--ink-2);margin-top:6px}
+.dots{display:grid;grid-template-columns:repeat(20,1fr);gap:5px;max-width:420px}
+.dots i{aspect-ratio:1;border-radius:50%;background:var(--neutral);opacity:.55}
+.dots i.m{background:var(--bad);opacity:1}
+.dot-l{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:10px}
+.dot-l i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+.fact{border-top:1px solid var(--border);padding-top:10px}
+.fact .l{font-size:13px;color:var(--ink-2)}
+.fact .v{font-family:var(--f-head);font-weight:600;font-size:26px;line-height:1.3}
+.fact .s{font-size:12.5px;color:var(--ink-2)}
+
+/* chapter 5 */
+.verdict{display:grid;gap:10px}
+.vrow{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline;padding-top:10px;border-top:1px solid var(--border)}
+.chip{font-size:12px;font-weight:600;padding:1px 10px;border-radius:999px;white-space:nowrap}
+.chip.yes{background:var(--ink);color:var(--page)}
+.chip.no{border:1px solid var(--axis);color:var(--ink-2)}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;list-style:none;padding:0}
+.act{border-top:1px solid var(--ink);padding-top:12px;display:grid;gap:8px;align-content:start}
+.act-h{display:flex;gap:10px;align-items:center}
+.act-h .ev{width:24px;height:24px;font-size:12.5px}
+.act-d{font-size:12.5px;color:var(--ink-2)}
+.act h3{font-size:15px}
+.mrow{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.mrow span{color:var(--ink-2)}
+.mrow b{font-weight:600;white-space:nowrap}
+
+.chain{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}.chain div{padding:12px 14px;border-right:1px solid var(--border);font-size:13px;color:var(--ink-2)}.chain div:last-child{border-right:0}.chain b{display:block;font-size:14.5px;color:var(--ink);font-weight:600}.chain div.hot b{color:var(--bad)}
+.foot{padding-block:44px 64px;color:var(--ink-2);font-size:13px;display:grid;gap:6px}
+.foot p{max-width:80ch}
+</style>
+
+<div id="tip" hidden></div>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="eyebrow">เรือพาณิชย์ · ต้นทุนจากความเสียหายที่พบช้า · ต.ค. 2024 – ก.ย. 2026</p>
+    <h1>สนิมและรอยร้าวที่เห็นช้า กลายเป็นเรือจอดอู่นานและค่าปรับที่แพงขึ้นทุกปี</h1>
+    <p class="lede">ติดตามแผ่นเหล็ก <span data-t="plates"></span> แผ่น นาน 2 ปี ดูว่าตรวจเจอเร็วขึ้นด้วย AI ช่วยตัดต้นทุนเหล่านี้ได้เท่าไร</p>
+    <span class="synth">ข้อมูลจำลองเพื่อการสาธิต</span>
+  </header>
+</div>
+
+<nav class="nav" aria-label="บทของเรื่อง">
+  <div class="wrap">
+    <ol id="navlist">
+      <li><a href="#c1"><b>1</b>ปัญหา</a></li>
+      <li><a href="#c2"><b>2</b>ภาพรวม</a></li>
+      <li><a href="#c3"><b>3</b>ตัวการ</a></li>
+      <li><a href="#c4"><b>4</b>ลงมือแก้</a></li>
+      <li><a href="#c5"><b>5</b>ผลลัพธ์</a></li>
+      <li><a href="#c6"><b>6</b>ก้าวต่อไป</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- 1 -->
+  <section class="chap" id="c1" aria-labelledby="t1">
+    <div class="chap-h"><span class="num">1</span><div><p class="q">จุดเริ่มต้น</p><h2 id="t1" data-t="c1h"></h2></div></div>
+    <p class="lead" data-t="c1p"></p>
+    <div class="hero">
+      <div>
+        <div class="big" data-t="hero"></div>
+        <p class="big-l">ของแผ่นที่มีสนิมหรือรอยร้าว ถูกตรวจไม่พบ และถูกส่งต่อไปใช้งานจริง</p>
+      </div>
+      <div>
+        <div class="dots" id="dots" role="img" aria-label=""></div>
+        <div class="dot-l"><span><i style="background:var(--neutral);opacity:.55"></i><span data-t="dotFound"></span></span><span><i style="background:var(--bad)"></i><span data-t="dotMiss"></span></span></div>
+      </div>
+    </div>
+    <div class="chain" aria-label="ห่วงโซ่ต้นทุน"><div><b>ตรวจช้า</b>สนิมและรอยร้าวไม่ถูกพบตั้งแต่ต้น</div><div><b>ลุกลาม</b>เรือต้องเข้าอู่ซ่อมนอกแผน เสียวันเดินเรือ</div><div class="hot"><b>เสียหายซ้ำ</b>ค่าจอดอู่สูงขึ้น และเสี่ยงค่าปรับด้านความปลอดภัย</div></div>
+    <div class="panel what"><h3>เราทำอะไร: Steel Plate Vision</h3><p data-t="what"></p><div class="chain what3"><div><b>คืออะไร</b>ระบบ AI ที่ตรวจสนิมและรอยร้าวบนแผ่นเหล็ก</div><div><b>ทำงานอย่างไร</b>ตรวจทุกแผ่นทุกไลน์ผลิต แทนการให้คนตรวจด้วยสายตา</div><div><b>ใช้ทำอะไร</b>จับตำหนิให้ทัน แล้วใช้ข้อมูลหาต้นเหตุเพื่อแก้ที่ต้นทาง</div></div></div>
+    <div class="facts" id="facts" hidden></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="chap" id="c2" aria-labelledby="t2">
+    <div class="chap-h"><span class="num">2</span><div><p class="q">ปัญหาโตขึ้น</p><h2 id="t2" data-t="c2h"></h2></div></div>
+    <p class="lead" data-t="c2p"></p>
+    <div class="panel" data-chart="monthly"></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="chap" id="c3" aria-labelledby="t3">
+    <div class="chap-h"><span class="num">3</span><div><p class="q">ตามหาตัวการ</p><h2 id="t3" data-t="c3h"></h2></div></div>
+    <div class="grid2">
+      <div class="panel" data-chart="rustDays"></div>
+      <div class="panel" data-chart="crackCool"></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="chap" id="c4" aria-labelledby="t4">
+    <div class="chap-h"><span class="num">4</span><div><p class="q">สิ่งที่เราทำ</p><h2 id="t4" data-t="c4h"></h2></div></div>
+    <div class="chain" aria-label="สิ่งที่เราทำ"><div><b>ตรวจทุกแผ่น</b>ติดตั้ง AI ตรวจทุกไลน์ ตั้งแต่ ต.ค. 2025</div><div><b>ไล่หาสาเหตุ</b>วิเคราะห์ข้อมูล 13,203 แผ่น แยกตามไลน์ คลัง ความชื้น และอัตราการเย็นตัว</div><div><b>ตัดปัจจัยที่ไม่เกี่ยว</b>ซัพพลายเออร์ทั้ง 3 รายมีตำหนิ 4.0–5.4% ไม่ต่างกัน</div><div><b>แก้ที่ต้นเหตุ</b>ลดการเย็นตัวไลน์ C ย้ายแผ่นเข้าอาคาร ห่อ VCI</div></div>
+    <div class="verdict" id="verdict" hidden></div>
+    <ol class="acts" id="acts"></ol>
+  </section>
+
+  <!-- 5 -->
+  <section class="chap" id="c5" aria-labelledby="t5">
+    <div class="chap-h"><span class="num">5</span><div><p class="q">ผลที่ได้</p><h2 id="t5" data-t="c5h"></h2></div></div>
+    <div class="facts" id="facts6"></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="chap" id="c6" aria-labelledby="t6">
+    <div class="chap-h"><span class="num">6</span><div><p class="q">ก้าวต่อไป</p><h2 id="t6" data-t="c6h"></h2></div></div>
+    <div class="verdict" id="sum" hidden></div>
+    <ol class="acts" id="next"></ol>
+  </section>
+
+</main>
+
+<footer class="wrap foot">
+  <p data-t="foot1"></p>
+  <p>ก่อนมีระบบ = ต.ค. 2024 – ก.ย. 2025 หลังมีระบบ = ต.ค. 2025 – ก.ย. 2026 (รวมสามเดือนแรกที่ยังไม่ได้แก้กระบวนการ) ต้นทุนไม่รวมค่าติดตั้งและดูแลระบบ AI เรื่องค่าจอดอู่และค่าปรับเป็นบริบทประกอบเรื่อง ไม่ได้มาจากชุดข้อมูลนี้ ตัวเลขเงินในหน้านี้คือค่าเคลมและค่าซ่อม ตัดทิ้งของแผ่นเหล็กเท่านั้น</p>
+</footer>
+
+<script>
+const D = {"before": {"plates": 6604, "defect_plates": 587, "defect_rate": 8.9, "rust_rate": 4.2, "crack_rate": 4.9, "found_rate": 77.5, "rust_det": 80.5, "crack_det": 74.1, "escaped": 134, "claims": 46, "claim_cost": 2868400, "handling_cost": 4593800, "false_alarm_rate": 1.5, "sec_per_plate": 151.0, "insp_hours": 277.0, "scrapped": 298, "reworked": 155}, "after": {"plates": 6599, "defect_plates": 211, "defect_rate": 3.2, "rust_rate": 1.0, "crack_rate": 2.3, "found_rate": 97.6, "rust_det": 97.0, "crack_det": 98.0, "escaped": 5, "claims": 2, "claim_cost": 65100, "handling_cost": 2347600, "false_alarm_rate": 2.2, "sec_per_plate": 8.0, "insp_hours": 15.0, "scrapped": 151, "reworked": 55}, "p4": {"plates": 4375, "defect_plates": 86, "defect_rate": 2.0, "rust_rate": 0.1, "crack_rate": 1.8, "found_rate": 95.3, "rust_det": 83.3, "crack_det": 96.2, "escaped": 4, "claims": 2, "claim_cost": 65100, "handling_cost": 1188800, "false_alarm_rate": 2.3, "sec_per_plate": 8.0, "insp_hours": 10.0, "scrapped": 77, "reworked": 5}, "months": ["2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "monthly": {"rust": [4.16, 1.62, 1.06, 1.48, 0.61, 0.68, 2.23, 3.32, 7.57, 10.23, 8.32, 8.82, 5.63, 3.42, 1.23, 0.87, 0.2, 0.36, 0.0, 0.17, 0.0, 0.18, 0.18, 0.0], "crack": [4.88, 6.68, 4.07, 6.09, 5.47, 3.75, 5.21, 5.06, 3.98, 3.29, 3.99, 6.07, 3.99, 4.18, 2.46, 1.91, 2.35, 2.34, 1.66, 2.04, 2.05, 2.01, 1.09, 1.1], "defect": [9.04, 8.3, 4.96, 7.56, 6.07, 4.44, 7.45, 8.2, 11.55, 13.17, 11.96, 13.97, 9.07, 7.22, 3.68, 2.77, 2.54, 2.7, 1.66, 2.21, 2.05, 2.19, 1.28, 1.1], "detect": [72.0, 78.3, 75.0, 58.5, 83.3, 65.4, 75.0, 85.1, 77.6, 78.9, 76.8, 89.5, 98.0, 100.0, 100.0, 100.0, 92.3, 86.7, 100.0, 100.0, 90.9, 100.0, 100.0, 100.0], "escaped": [14.0, 10.0, 7.0, 17.0, 5.0, 9.0, 10.0, 8.0, 13.0, 16.0, 16.0, 9.0, 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], "claims": [5.0, 4.0, 3.0, 9.0, 2.0, 3.0, 2.0, 4.0, 3.0, 4.0, 3.0, 4.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], "claim_cost": [216100.0, 351700.0, 151700.0, 460400.0, 55500.0, 207200.0, 194100.0, 257400.0, 213800.0, 264400.0, 192900.0, 303200.0, 0.0, 0.0, 0.0, 0.0, 21700.0, 0.0, 0.0, 0.0, 43400.0, 0.0, 0.0, 0.0], "humidity": [78.0, 70.5, 64.7, 60.3, 58.4, 58.5, 64.5, 70.5, 77.0, 82.1, 85.7, 82.5, 77.7, 72.7, 65.2, 59.8, 57.3, 58.7, 62.6, 71.3, 76.2, 83.7, 83.2, 81.7], "rain": [250.5, 48.8, 88.9, 98.3, 116.6, 48.6, 103.6, 125.1, 146.6, 330.8, 263.1, 111.5, 196.5, 216.0, 112.7, 180.3, 61.0, 66.6, 13.4, 172.2, 83.9, 167.1, 232.1, 206.1]}, "severity": {"Rust": [235, 240, 91], "Crack": [164, 178, 228]}, "heat": {"Rust": {"pct": [[10.6, 6.7, 6.4, 6.5, 9.5], [6.0, 4.6, 2.5, 5.1, 6.0], [10.6, 6.9, 4.2, 6.2, 8.1]], "n": 566}, "Crack": {"pct": [[13.5, 6.5, 1.6, 6.1, 13.3], [3.9, 2.3, 1.1, 1.8, 5.3], [13.9, 5.8, 3.3, 5.8, 16.0]], "n": 570}}, "by_line": {"keys": ["Line A", "Line B", "Line C"], "rust": [3.9, 4.4, 4.4], "crack": [1.6, 1.7, 14.3], "n": [2623, 2292, 1689]}, "by_wh": {"keys": ["Indoor", "Open-air shed"], "rust": [0.3, 8.8], "crack": [4.7, 5.1], "n": [3596, 3008]}, "line_shift": {"Morning": [1.1, 2.5, 13.1], "Afternoon": [1.1, 0.9, 13.2], "Night": [2.6, 1.5, 17.2]}, "rust_days": {"Indoor": {"n": [689, 1584, 1132, 174, 17], "true_rust": [0.1, 0.4, 0.4, 0.0, 0.0]}, "Open-air shed": {"n": [174, 679, 1308, 592, 255], "true_rust": [1.1, 2.2, 6.9, 13.0, 31.8]}}, "rust_hum": {"Indoor": {"n": [1302, 787, 611, 896], "true_rust": [0.2, 0.3, 0.7, 0.3]}, "Open-air shed": {"n": [1042, 625, 548, 793], "true_rust": [1.6, 5.4, 10.6, 19.7]}}, "crack_cool": {"n": [1239, 2359, 1539, 799, 668], "true_crack": [1.0, 0.8, 2.5, 9.6, 25.9]}, "labels": {"days": ["1-3", "4-7", "8-14", "15-21", "22+"], "hum": ["<66", "66-74", "74-80", "80+"], "cool": ["<7", "7-9", "9-11", "11-13", "13+"]}, "supplier": {"keys": ["Supplier X", "Supplier Y", "Supplier Z"], "rust": [4.0, 4.2, 4.7], "crack": [4.5, 5.4, 4.9]}, "temp": {"keys": ["T1", "T2", "T3"], "rust": [6.0, 4.0, 2.7], "crack": [5.4, 4.4, 4.7], "range": [24.4, 28.8, 31.1, 34.7]}, "season": {"06": {"rust25": 7.6, "rust26": 0.0, "hum25": 77.0, "hum26": 76.2, "rain25": 147.0, "rain26": 84.0}, "07": {"rust25": 10.2, "rust26": 0.2, "hum25": 82.1, "hum26": 83.7, "rain25": 331.0, "rain26": 167.0}, "08": {"rust25": 8.3, "rust26": 0.2, "hum25": 85.7, "hum26": 83.2, "rain25": 263.0, "rain26": 232.0}, "09": {"rust25": 8.8, "rust26": 0.0, "hum25": 82.5, "hum26": 81.7, "rain25": 112.0, "rain26": 206.0}}, "season_all": {"rust25": 8.8, "rust26": 0.1, "hum25": 81.8, "hum26": 81.3}, "actions": {"cool_c_before": 12.4, "cool_c_after": 9.0, "crack_c_before": 14.3, "crack_c_after": 3.2, "open_before": 46.0, "open_after": 10.0, "days_before": 9.2, "days_after": 5.1, "vci_after": 85.0}, "dataset": {"plates": 13203, "spots": 1532, "days": 730}};
+const NS = 'http://www.w3.org/2000/svg';
+const MS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const mshort = ym => MS[+ym.slice(5) - 1] + ' ' + ym.slice(2, 4);
+const mlong = ym => MS[+ym.slice(5) - 1] + ' ' + ym.slice(0, 4);
+const mthai = ym => MT[+ym.slice(5) - 1] + ' ' + ym.slice(0, 4);
+const fmtN = v => Math.round(v).toLocaleString('en-US');
+const fmtM = v => (v / 1e6).toFixed(2);
+const pc = v => v.toFixed(1) + '%';
+
+const B = D.before, A = D.after;
+const missedPct = Math.round(B.escaped / B.defect_plates * 100);
+const costB = B.claim_cost + B.handling_cost, costA = A.claim_cost + A.handling_cost;
+const costDrop = Math.round((1 - costA / costB) * 100);
+const speedX = Math.round(B.sec_per_plate / A.sec_per_plate);
+const lc = D.by_line.crack, lineRatio = Math.round(lc[2] / ((lc[0] + lc[1]) / 2));
+const crackP1 = D.monthly.crack.slice(0, 12), rustP1 = D.monthly.rust.slice(0, 12);
+const rustPeakI = rustP1.indexOf(Math.max(...rustP1));
+const cr = D.heat.Crack.pct, ru = D.heat.Rust.pct;
+const cornerShare = cr[0][0] + cr[0][4] + cr[2][0] + cr[2][4];
+const edgeShare = ru[0].reduce((a, b) => a + b, 0) + ru[2].reduce((a, b) => a + b, 0);
+const rd = D.rust_days, cc = D.crack_cool, rh = D.rust_hum;
+
+/* ---------- tiny DOM helpers ---------- */
+function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function S(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) { if (k === 'text') e.textContent = attrs[k]; else e.setAttribute(k, attrs[k]); }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById('tip');
+function placeTip(e) {
+  const w = tip.offsetWidth, hh = tip.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y + hh > innerHeight - 8) y = e.clientY - hh - 14;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+}
+function showTip(e, head, rows) {
+  tip.replaceChildren();
+  tip.append(h('div', 'tip-h', head));
+  rows.forEach(r => {
+    const d = h('div', 'tip-r');
+    if (r.color) { const k = document.createElement('i'); k.style.background = r.color; d.append(k); }
+    d.append(h('b', '', r.v), h('span', '', r.k));
+    tip.append(d);
+  });
+  tip.hidden = false; placeTip(e);
+}
+function hideTip() { tip.hidden = true; }
+
+/* ---------- panel shell ---------- */
+function shell(el, title, sub) {
+  el.classList.add('panel');
+  const head = h('div', 'panel-h'); const t = h('div'); t.append(h('h3', '', title)); if (sub) t.append(h('p', '', sub)); head.append(t); el.append(head);
+  const legend = h('ul', 'legend'); el.append(legend);
+  const box = h('div', 'chart'); el.append(box);
+  const tbl = h('div'); tbl.hidden = true; el.append(tbl);
+  const foot = h('div', 'panel-foot'); el.append(foot);
+  return { el, head, legend, box, tbl, foot };
+}
+function setLegend(sh, items) {
+  items.forEach(it => {
+    const li = h('li'); const k = h('i', 'key ' + (it.shape || 'rect')); k.style.background = it.color;
+    li.append(k, document.createTextNode(it.label)); sh.legend.append(li);
+  });
+}
+function makeTable({ head, rows }) {
+  const wrap = h('div', 'tbl-wrap'); const t = h('table'); const th = h('thead'); const tr = h('tr');
+  head.forEach((x, i) => { const c = h('th', '', x); c.scope = 'col'; tr.append(c); }); th.append(tr); t.append(th);
+  const tb = h('tbody');
+  rows.forEach(r => { const tr2 = h('tr'); r.forEach((x, i) => { const c = h(i ? 'td' : 'th', '', x); if (!i) c.scope = 'row'; tr2.append(c); }); tb.append(tr2); });
+  t.append(tb); wrap.append(t); return wrap;
+}
+function tableToggle(sh, fn) {
+  const b = h('button', 'tbl-btn', 'ดูเป็นตาราง'); b.type = 'button'; b.setAttribute('aria-pressed', 'false'); sh.head.append(b);
+  b.onclick = () => {
+    const on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'ดูเป็นกราฟ' : 'ดูเป็นตาราง';
+    sh.box.hidden = on; sh.tbl.hidden = !on; hideTip();
+    if (on) sh.tbl.replaceChildren(makeTable(fn()));
+  };
+}
+function mountChart(box, draw) {
+  let last = 0;
+  const api = {
+    redraw() { last = 0; run(); }
+  };
+  function run() {
+    const w = Math.floor(box.clientWidth);
+    if (!w || w === last) return;
+    last = w; box.replaceChildren(); hideTip(); draw(box, w);
+  }
+  new ResizeObserver(run).observe(box); run();
+  return api;
+}
+
+/* ---------- chart primitives ---------- */
+function niceTicks(max, target) {
+  const raw = max / target, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  const step = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  const top = Math.ceil(max / step - 1e-9) * step, t = [];
+  for (let v = 0; v <= top + 1e-9; v += step) t.push(+v.toFixed(6));
+  return t;
+}
+function frame(box, w, hgt, m) {
+  const svg = S('svg', { width: w, height: hgt, viewBox: `0 0 ${w} ${hgt}`, role: 'img' }, box);
+  svg.style.touchAction = 'pan-y';
+  return { svg, x0: m.l, x1: w - m.r, y0: m.t, y1: hgt - m.b, iw: w - m.l - m.r, ih: hgt - m.t - m.b };
+}
+function yAxis(f, ticks, ymax, fmt) {
+  ticks.forEach(v => {
+    const y = f.y1 - v / ymax * f.ih;
+    S('line', { x1: f.x0, x2: f.x1, y1: y, y2: y, class: v === 0 ? 'bl' : 'gl' }, f.svg);
+    S('text', { x: f.x0 - 8, y: y + 4, 'text-anchor': 'end', class: 'tx', text: fmt(v) }, f.svg);
+  });
+}
+function colPath(x, y, w, hh, r) {
+  r = Math.min(r, hh, w / 2);
+  return `M${x},${y + hh}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + hh}Z`;
+}
+function hbarPath(x, y, w, hh, r) {
+  r = Math.min(r, w, hh / 2);
+  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + hh - r}Q${x + w},${y + hh} ${x + w - r},${y + hh}H${x}Z`;
+}
+
+/* grouped columns: cats x series */
+function drawGrouped(box, w, o) {
+  const k = o.series.length, hgt = o.h || 280, fmt = o.fmt || pc;
+  const f = frame(box, w, hgt, { l: o.l || 42, r: 8, t: 24, b: o.catSub ? 46 : 30 });
+  f.svg.setAttribute('aria-label', o.aria);
+  const max = Math.max(...o.series.flatMap(s => s.vals));
+  const ticks = niceTicks(max * 1.12, 4), ymax = ticks[ticks.length - 1];
+  yAxis(f, ticks, ymax, o.yfmt || (v => v + '%'));
+  const band = f.iw / o.cats.length, bw = Math.min(24, (band * 0.74 - 2 * (k - 1)) / k), gw = bw * k + 2 * (k - 1);
+  o.cats.forEach((c, ci) => {
+    const cx = f.x0 + band * (ci + .5), gx = cx - gw / 2;
+    const hov = S('rect', { x: f.x0 + band * ci, y: f.y0, width: band, height: f.ih, class: 'hov' }, f.svg);
+    o.series.forEach((s, si) => {
+      const v = s.vals[ci], bh = v / ymax * f.ih, x = gx + si * (bw + 2);
+      const col = s.colors ? s.colors[ci] : s.color;
+      if (bh >= 0.8) S('path', { d: colPath(x, f.y1 - bh, bw, bh, 4), style: 'fill:' + col }, f.svg);
+      if ((o.labelSel || []).some(p => p[0] === si && p[1] === ci))
+        S('text', { x: x + bw / 2, y: f.y1 - bh - 6, 'text-anchor': 'middle', class: 'val', text: fmt(v) }, f.svg);
+    });
+    const every = o.labelEvery ? (w < 520 ? o.labelEvery * 2 : o.labelEvery) : 1;
+    if (ci % every === 0) {
+      S('text', { x: cx, y: f.y1 + 16, 'text-anchor': 'middle', class: 'tx', text: c }, f.svg);
+      if (o.catSub) S('text', { x: cx, y: f.y1 + 31, 'text-anchor': 'middle', class: 'tx2', text: o.catSub[ci] }, f.svg);
+    }
+    const hit = S('rect', { x: f.x0 + band * ci, y: f.y0, width: band, height: f.ih + 20, fill: 'transparent' }, f.svg);
+    const show = e => {
+      hov.style.fill = 'var(--surface-2)';
+      const rows = o.series.map(s => ({ k: s.n ? `${s.name} (${fmtN(s.n[ci])} แผ่น)` : s.name, v: fmt(s.vals[ci]), color: s.colors ? s.colors[ci] : s.color }));
+      (o.extra ? o.extra(ci) : []).forEach(r => rows.push(r));
+      showTip(e, o.tipHead ? o.tipHead(ci) : c, rows);
+    };
+    hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show);
+    hit.addEventListener('pointerleave', () => { hov.style.fill = 'transparent'; hideTip(); });
+  });
+}
+
+/* ---------- chart specs ---------- */
+const CHARTS = {};
+
+/* 2a monthly lines */
+const EVENTS = [
+  { i: 12, n: 1, t: 'ต.ค. 2025 เริ่มใช้ระบบ AI ตรวจแผ่นทุกไลน์' },
+  { i: 15, n: 2, t: `ม.ค. 2026 ลดอัตราการเย็นตัวไลน์ C จาก ${D.actions.cool_c_before} เป็น ${D.actions.cool_c_after} °C/s` },
+  { i: 16, n: 3, t: 'ก.พ. 2026 ย้ายแผ่นเข้าคลังในอาคาร ห่อ VCI และส่งแบบเข้าก่อนออกก่อน' }
+];
+CHARTS.monthly = el => {
+  const sh = shell(el, 'อัตราแผ่นมีตำหนิจริงรายเดือน', '% ของแผ่นที่ผลิตในเดือนนั้น นับทั้งที่ตรวจพบและตรวจไม่พบ');
+  setLegend(sh, [{ label: 'สนิม', color: 'var(--rust)', shape: 'line' }, { label: 'รอยร้าว', color: 'var(--crack)', shape: 'line' }]);
+  const ol = h('ol'); EVENTS.forEach(e => { const li = h('li'); li.append(h('span', 'ev', String(e.n)), h('span', '', e.t)); ol.append(li); }); sh.foot.append(ol);
+  tableToggle(sh, () => ({ head: ['เดือน', 'สนิม (%)', 'รอยร้าว (%)', 'หลุดถึงลูกค้า (แผ่น)', 'ความชื้นเฉลี่ย (%)'], rows: D.months.map((m, i) => [mlong(m), D.monthly.rust[i].toFixed(1), D.monthly.crack[i].toFixed(1), String(D.monthly.escaped[i]), D.monthly.humidity[i].toFixed(1)]) }));
+  mountChart(sh.box, (box, w) => {
+    const narrow = w < 520, hgt = narrow ? 280 : 320;
+    const f = frame(box, w, hgt, { l: 38, r: 14, t: 38, b: 30 });
+    f.svg.setAttribute('aria-label', 'กราฟเส้นอัตราสนิมและรอยร้าวรายเดือน ตุลาคม 2024 ถึง กันยายน 2026');
+    const n = D.months.length, X = i => f.x0 + i / (n - 1) * f.iw;
+    const max = Math.max(...D.monthly.rust, ...D.monthly.crack);
+    const ticks = niceTicks(max * 1.08, 4), ymax = ticks[ticks.length - 1], Y = v => f.y1 - v / ymax * f.ih;
+    S('rect', { x: X(12), y: f.y0, width: f.x1 - X(12), height: f.ih, class: 'wash' }, f.svg);
+    yAxis(f, ticks, ymax, v => v + '%');
+    S('text', { x: f.x0 + 6, y: f.y0 + 14, class: 'tx2', text: 'ตรวจด้วยคน' }, f.svg);
+    S('text', { x: f.x1 - 6, y: f.y0 + 14, 'text-anchor': 'end', class: 'tx2', text: 'ตรวจด้วย AI' }, f.svg);
+    D.months.forEach((m, i) => { if (i % (narrow ? 6 : 3) === 0) S('text', { x: X(i), y: f.y1 + 18, 'text-anchor': 'middle', class: 'tx', text: mshort(m) }, f.svg); });
+    const sp = f.iw / (n - 1), sep = Math.max(0, (20 - sp) / 2);
+    EVENTS.forEach(e => {
+      const x = X(e.i), off = e.i === 15 ? -sep : e.i === 16 ? sep : 0;
+      S('line', { x1: x, x2: x, y1: 22, y2: f.y1, class: 'evl' }, f.svg);
+      S('circle', { cx: x + off, cy: 13, r: 9, class: 'evn' }, f.svg);
+      S('text', { x: x + off, y: 17, 'text-anchor': 'middle', class: 'evt', text: String(e.n) }, f.svg);
+    });
+    const series = [['crack', 'var(--crack)'], ['rust', 'var(--rust)']];
+    series.forEach(([k, c]) => {
+      const d = D.monthly[k].map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join('');
+      S('path', { d, class: 'ln', style: 'stroke:' + c }, f.svg);
+    });
+    series.forEach(([k, c]) => S('circle', { cx: X(n - 1), cy: Y(D.monthly[k][n - 1]), r: 4, style: `fill:${c};stroke:var(--surface);stroke-width:2` }, f.svg));
+    const xh = S('line', { y1: f.y0, y2: f.y1, class: 'xh', style: 'display:none' }, f.svg);
+    const dots = series.map(([k, c]) => S('circle', { r: 4, style: `fill:${c};stroke:var(--surface);stroke-width:2;display:none` }, f.svg));
+    const hit = S('rect', { x: f.x0, y: f.y0, width: f.iw, height: f.ih, fill: 'transparent' }, f.svg);
+    const move = e => {
+      const r = f.svg.getBoundingClientRect(), mx = e.clientX - r.left;
+      const i = Math.max(0, Math.min(n - 1, Math.round((mx - f.x0) / f.iw * (n - 1))));
+      xh.setAttribute('x1', X(i)); xh.setAttribute('x2', X(i)); xh.style.display = '';
+      series.forEach(([k], j) => { dots[j].setAttribute('cx', X(i)); dots[j].setAttribute('cy', Y(D.monthly[k][i])); dots[j].style.display = ''; });
+      const ev = EVENTS.filter(x => x.i === i).map(x => ({ k: x.t, v: String(x.n) }));
+      showTip(e, mlong(D.months[i]), [
+        { k: 'สนิม', v: pc(D.monthly.rust[i]), color: 'var(--rust)' },
+        { k: 'รอยร้าว', v: pc(D.monthly.crack[i]), color: 'var(--crack)' },
+        { k: 'แผ่นหลุดถึงลูกค้า', v: D.monthly.escaped[i] + ' แผ่น' },
+        { k: 'ความชื้นเฉลี่ย', v: D.monthly.humidity[i].toFixed(0) + '%' }, ...ev]);
+    };
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', () => { xh.style.display = 'none'; dots.forEach(d => d.style.display = 'none'); hideTip(); });
+  });
+};
+
+/* 2b severity stacked bars */
+CHARTS.severity = el => {
+  const sh = shell(el, 'ตำหนิที่เจอรุนแรงแค่ไหน', 'สัดส่วนจุดตำหนิตามระดับความรุนแรง ช่วงก่อนใช้ระบบ เข้มขึ้นคือรุนแรงขึ้น');
+  const ramp = [50, 75, 100];
+  setLegend(sh, ['เล็กน้อย', 'ปานกลาง', 'รุนแรง'].map((l, i) => ({ label: l, color: `color-mix(in oklab, var(--ink-2) ${ramp[i]}%, var(--surface))` })));
+  const rows = [['สนิม', 'Rust', '--rust', '--on-rust'], ['รอยร้าว', 'Crack', '--crack', '--on-crack']];
+  const names = ['เล็กน้อย', 'ปานกลาง', 'รุนแรง'];
+  tableToggle(sh, () => ({ head: ['ชนิด', 'เล็กน้อย (จุด)', 'ปานกลาง (จุด)', 'รุนแรง (จุด)'], rows: rows.map(r => [r[0], ...D.severity[r[1]].map(String)]) }));
+  sh.foot.textContent = `รอยร้าว ${Math.round(D.severity.Crack[2] / D.severity.Crack.reduce((a, b) => a + b) * 100)}% อยู่ระดับรุนแรง ส่วนสนิมส่วนใหญ่เป็นระดับเล็กน้อยถึงปานกลาง`;
+  mountChart(sh.box, (box, w) => {
+    const L = Math.min(104, w * .27), rowH = 44, hgt = rows.length * rowH + 22;
+    const f = frame(box, w, hgt, { l: L, r: 6, t: 4, b: 20 });
+    f.svg.setAttribute('aria-label', 'แท่งซ้อนสัดส่วนความรุนแรงของสนิมและรอยร้าว');
+    [0, 50, 100].forEach(v => {
+      const x = f.x0 + v / 100 * f.iw;
+      S('line', { x1: x, x2: x, y1: f.y0, y2: f.y1, class: 'gl' }, f.svg);
+      S('text', { x, y: f.y1 + 15, 'text-anchor': v === 0 ? 'start' : v === 100 ? 'end' : 'middle', class: 'tx', text: v + '%' }, f.svg);
+    });
+    rows.forEach((r, ri) => {
+      const cnt = D.severity[r[1]], tot = cnt.reduce((a, b) => a + b), y = f.y0 + ri * rowH + 8;
+      S('text', { x: 0, y: y + 11, class: 'val', text: r[0] }, f.svg);
+      S('text', { x: 0, y: y + 25, class: 'tx2', text: fmtN(tot) + ' จุด' }, f.svg);
+      let x = f.x0;
+      cnt.forEach((c, i) => {
+        const sw = c / tot * f.iw, wd = Math.max(0, sw - (i < 2 ? 2 : 0));
+        const fill = `color-mix(in oklab, var(${r[2]}) ${ramp[i]}%, var(--surface))`;
+        const path = S('path', { d: i === 2 ? hbarPath(x, y, wd, 24, 4) : `M${x},${y}h${wd}v24h${-wd}Z`, style: 'fill:' + fill }, f.svg);
+        const share = c / tot * 100;
+        const col = i === 2 ? `var(${r[3]})` : 'var(--ink)';
+        const tryLabels = [`${names[i]} ${share.toFixed(0)}%`, `${share.toFixed(0)}%`];
+        for (const t of tryLabels) {
+          const tx = S('text', { x: x + wd / 2, y: y + 16, 'text-anchor': 'middle', style: `fill:${col};font:600 11px var(--f-body)`, text: t }, f.svg);
+          if (tx.getBBox().width + 12 <= wd) break; tx.remove();
+        }
+        const hit = S('rect', { x, y: y - 4, width: Math.max(wd, 1), height: 32, fill: 'transparent' }, f.svg);
+        const show = e => showTip(e, `${r[0]} · ${names[i]}`, [{ k: 'จุดตำหนิ', v: fmtN(c) + ' จุด' }, { k: 'สัดส่วน', v: share.toFixed(1) + '%' }]);
+        hit.addEventListener('pointermove', show); hit.addEventListener('pointerdown', show); hit.addEventListener('pointerleave', hideTip);
+        x += sw;
+      });
+    });
+  });
+};
+
+/* 3a plate heatmap */
+CHARTS.plate = el => {
+  const sh = shell(el, 'ตำหนิอยู่ตรงไหนบนแผ่น', 'สัดส่วนจุดตำหนิในแต่ละโซน แผ่นมาตรฐาน 6,000 × 1,500 มม. แบ่งเป็นกริด 3 × 5 โซน');
+  const seg = h('div'); seg.style.cssText = 'display:flex;gap:0;border:1px solid var(--border);border-radius:4px;overflow:hidden;width:max-content';
+  const state = { type: 'Rust' };
+  const btns = {};
+  [['Rust', 'สนิม'], ['Crack', 'รอยร้าว']].forEach(([k, l]) => {
+    const b = h('button', '', l); b.type = 'button';
+    b.style.cssText = 'padding:4px 16px;border:0;cursor:pointer;font-size:13px;background:transparent;color:var(--ink-2)';
+    btns[k] = b; seg.append(b);
+    b.onclick = () => { state.type = k; paint(); api.redraw(); };
+  });
+  sh.legend.after(seg);
+  function paint() {
+    for (const k in btns) {
+      const on = k === state.type;
+      btns[k].style.background = on ? 'var(--ink)' : 'transparent'; btns[k].style.color = on ? 'var(--page)' : 'var(--ink-2)';
+      btns[k].setAttribute('aria-pressed', String(on));
+    }
+    sh.foot.textContent = state.type === 'Rust'
+      ? `สนิม ${edgeShare.toFixed(0)}% อยู่ที่ขอบแผ่นสองด้าน ซึ่งเป็นจุดที่น้ำขังและสัมผัสกับแผ่นรอง`
+      : `รอยร้าว ${cornerShare.toFixed(0)}% กระจุกอยู่ที่มุมหัวและท้ายแผ่น เพียง 4 จาก 15 โซน`;
+  }
+  tableToggle(sh, () => {
+    const t = state.type, rn = ['ขอบซ้าย', 'กลาง', 'ขอบขวา'];
+    return { head: ['ตำแหน่งความกว้าง', 'หัวแผ่น (%)', 'หัว-กลาง (%)', 'กลาง (%)', 'กลาง-ท้าย (%)', 'ท้ายแผ่น (%)'], rows: D.heat[t].pct.map((r, i) => [rn[i], ...r.map(v => v.toFixed(1))]) };
+  });
+  const api = mountChart(sh.box, (box, w) => {
+    const type = state.type, hm = D.heat[type], col = type === 'Rust' ? '--rust' : '--crack', on = type === 'Rust' ? '--on-rust' : '--on-crack';
+    const narrow = w < 520, L = narrow ? 56 : 76, T = 52, cw = (w - L - 6) / 5, ch = Math.max(44, Math.min(72, cw * .7)), hgt = T + 3 * ch + 6;
+    const svg = S('svg', { width: w, height: hgt, viewBox: `0 0 ${w} ${hgt}`, role: 'img', 'aria-label': `แผนที่ความหนาแน่นของ${type === 'Rust' ? 'สนิม' : 'รอยร้าว'}บนแผ่นเหล็ก` }, box);
+    svg.style.touchAction = 'pan-y';
+    const x0 = L, x1 = L + 5 * cw;
+    S('line', { x1: x0, x2: x1, y1: 20, y2: 20, class: 'dim' }, svg);
+    S('line', { x1: x0, x2: x0, y1: 15, y2: 25, class: 'dim' }, svg);
+    S('line', { x1: x1, x2: x1, y1: 15, y2: 25, class: 'dim' }, svg);
+    S('text', { x: (x0 + x1) / 2, y: 12, 'text-anchor': 'middle', class: 'tx', text: 'ความยาวแผ่น 6,000 mm' }, svg);
+    const cn = cw >= 64 ? ['หัวแผ่น', 'หัว-กลาง', 'กลาง', 'กลาง-ท้าย', 'ท้ายแผ่น'] : ['หัว', '', 'กลาง', '', 'ท้าย'];
+    const cnFull = ['หัวแผ่น', 'หัว-กลาง', 'กลางแผ่น', 'กลาง-ท้าย', 'ท้ายแผ่น'], rn = ['ขอบซ้าย', 'กลาง', 'ขอบขวา'];
+    cn.forEach((t, c) => S('text', { x: L + (c + .5) * cw, y: 42, 'text-anchor': 'middle', class: 'tx', text: t }, svg));
+    rn.forEach((t, r) => S('text', { x: L - 8, y: T + (r + .5) * ch + 4, 'text-anchor': 'end', class: 'tx', text: t }, svg));
+    const max = Math.max(...hm.pct.flat());
+    hm.pct.forEach((row, r) => row.forEach((v, c) => {
+      const mix = 8 + 92 * v / max, x = L + c * cw + 1, y = T + r * ch + 1;
+      const rect = S('rect', { x, y, width: cw - 2, height: ch - 2, style: `fill:color-mix(in oklab, var(${col}) ${mix.toFixed(0)}%, var(--surface))` }, svg);
+      S('text', { x: x + (cw - 2) / 2, y: y + (ch - 2) / 2 + 4, 'text-anchor': 'middle', style: `fill:${mix >= 55 ? `var(${on})` : 'var(--ink)'};font:600 12.5px var(--f-body)`, text: v.toFixed(1) + '%' }, svg);
+      const show = e => { rect.style.stroke = 'var(--ink)'; rect.style.strokeWidth = '2'; showTip(e, `${rn[r]} · ${cnFull[c]}`, [{ k: `สัดส่วนจุด${type === 'Rust' ? 'สนิม' : 'รอยร้าว'}`, v: v.toFixed(1) + '%' }, { k: 'จำนวน', v: Math.round(v * hm.n / 100) + ' จุด' }]); };
+      rect.addEventListener('pointermove', show); rect.addEventListener('pointerdown', show);
+      rect.addEventListener('pointerleave', () => { rect.style.stroke = 'none'; hideTip(); });
+    }));
+    S('rect', { x: x0, y: T, width: 5 * cw, height: 3 * ch, fill: 'none', style: 'stroke:var(--ink-2);stroke-width:1.5;pointer-events:none' }, svg);
+  });
+  paint();
+};
+
+/* 3b by line */
+CHARTS.byLine = el => {
+  const sh = shell(el, 'อัตราตำหนิแยกตามไลน์ผลิต', '% ของแผ่นที่ผลิตในแต่ละไลน์ ช่วงก่อนใช้ระบบ');
+  setLegend(sh, [{ label: 'สนิม', color: 'var(--rust)' }, { label: 'รอยร้าว', color: 'var(--crack)' }]);
+  sh.foot.textContent = `ไลน์ C มีรอยร้าว ${pc(lc[2])} ส่วนไลน์ A และ B อยู่ที่ราว ${pc((lc[0] + lc[1]) / 2)}`;
+  const L = D.by_line;
+  tableToggle(sh, () => ({ head: ['ไลน์', 'แผ่น', 'สนิม (%)', 'รอยร้าว (%)'], rows: L.keys.map((k, i) => [k, fmtN(L.n[i]), L.rust[i].toFixed(1), L.crack[i].toFixed(1)]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats: L.keys, aria: 'กราฟแท่งอัตราสนิมและรอยร้าวตามไลน์ผลิต', h: 260,
+    series: [{ name: 'สนิม', color: 'var(--rust)', vals: L.rust }, { name: 'รอยร้าว', color: 'var(--crack)', vals: L.crack }],
+    labelSel: [[1, 2]], extra: ci => [{ k: 'จำนวนแผ่น', v: fmtN(L.n[ci]) }]
+  }));
+};
+
+/* 3c by warehouse */
+CHARTS.byWh = el => {
+  const sh = shell(el, 'อัตราสนิมแยกตามคลังที่เก็บ', '% ของแผ่นที่มีสนิม ช่วงก่อนใช้ระบบ');
+  setLegend(sh, [{ label: 'โรงเรือนเปิด', color: 'var(--rust)' }, { label: 'ในอาคาร', color: 'var(--neutral)' }]);
+  const W = D.by_wh, nm = { 'Indoor': 'คลังในอาคาร', 'Open-air shed': 'โรงเรือนเปิด' };
+  sh.foot.textContent = `โรงเรือนเปิดมีสนิม ${pc(W.rust[1])} ส่วนในอาคาร ${pc(W.rust[0])}`;
+  tableToggle(sh, () => ({ head: ['คลัง', 'แผ่น', 'สนิม (%)'], rows: W.keys.map((k, i) => [nm[k], fmtN(W.n[i]), W.rust[i].toFixed(1)]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats: W.keys.map(k => nm[k]), aria: 'กราฟแท่งอัตราสนิมตามคลังที่เก็บ', h: 260,
+    series: [{ name: 'สนิม', colors: W.keys.map(k => k === 'Indoor' ? 'var(--neutral)' : 'var(--rust)'), vals: W.rust }],
+    labelSel: [[0, 0], [0, 1]], extra: ci => [{ k: 'จำนวนแผ่น', v: fmtN(W.n[ci]) }]
+  }));
+};
+
+/* 4a rust vs storage days */
+CHARTS.rustDays = el => {
+  const sh = shell(el, 'สนิม กับจำนวนวันที่เก็บ', '% ของแผ่นที่มีสนิม แยกตามจำนวนวันที่เก็บก่อนส่ง');
+  setLegend(sh, [{ label: 'โรงเรือนเปิด', color: 'var(--rust)' }, { label: 'ในอาคาร', color: 'var(--neutral)' }]);
+  const o = rd['Open-air shed'], i2 = rd['Indoor'], cats = D.labels.days.map(x => x + ' วัน');
+  sh.foot.textContent = `โรงเรือนเปิดที่เก็บเกิน 22 วัน มีสนิม ${pc(o.true_rust[4])} ส่วนในอาคารแทบไม่มีสนิมไม่ว่าเก็บนานเท่าไร`;
+  tableToggle(sh, () => ({ head: ['วันที่เก็บ', 'โรงเรือนเปิด (%)', 'แผ่น', 'ในอาคาร (%)', 'แผ่น'], rows: cats.map((c, i) => [c, o.true_rust[i].toFixed(1), fmtN(o.n[i]), i2.true_rust[i].toFixed(1), fmtN(i2.n[i])]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats, aria: 'กราฟแท่งอัตราสนิมตามจำนวนวันที่เก็บ แยกโรงเรือนเปิดและในอาคาร', h: 280,
+    series: [{ name: 'โรงเรือนเปิด', color: 'var(--rust)', vals: o.true_rust, n: o.n }, { name: 'ในอาคาร', color: 'var(--neutral)', vals: i2.true_rust, n: i2.n }],
+    labelSel: [[0, 4], [1, 1]]
+  }));
+};
+
+/* 4b crack vs cooling */
+CHARTS.crackCool = el => {
+  const sh = shell(el, 'รอยร้าว กับอัตราการเย็นตัว', '% ของแผ่นที่มีรอยร้าว แยกตามอัตราการเย็นตัวหลังรีด (°C/วินาที)');
+  const cats = D.labels.cool.map(x => x + ' °C/s');
+  sh.foot.textContent = `เย็นตัว 13 °C/s ขึ้นไป ร้าว ${pc(cc.true_crack[4])} เทียบกับ ${pc(cc.true_crack[1])} ที่ 7-9 °C/s`;
+  tableToggle(sh, () => ({ head: ['อัตราการเย็นตัว', 'แผ่น', 'รอยร้าว (%)'], rows: cats.map((c, i) => [c, fmtN(cc.n[i]), cc.true_crack[i].toFixed(1)]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats, aria: 'กราฟแท่งอัตรารอยร้าวตามอัตราการเย็นตัว', h: 280,
+    series: [{ name: 'รอยร้าว', color: 'var(--crack)', vals: cc.true_crack, n: cc.n }],
+    labelSel: [[0, 0], [0, 4]]
+  }));
+};
+
+/* 4c line x shift table */
+CHARTS.lineShift = el => {
+  const sh = shell(el, 'รอยร้าว แยกตามไลน์และกะ', '% ของแผ่นที่มีรอยร้าว ช่วงก่อนใช้ระบบ เข้มขึ้นคือร้าวมากขึ้น');
+  const lines = ['Line A', 'Line B', 'Line C'], shifts = [['Morning', 'กะเช้า'], ['Afternoon', 'กะบ่าย'], ['Night', 'กะดึก']];
+  const max = Math.max(...Object.values(D.line_shift).flat());
+  const wrap = h('div', 'tbl-wrap'), t = h('table', 'heat'), th = h('thead'), tr = h('tr');
+  tr.append(h('th', '', ''));
+  lines.forEach(l => { const c = h('th', '', l); c.scope = 'col'; tr.append(c); });
+  th.append(tr); t.append(th);
+  const tb = h('tbody');
+  shifts.forEach(([k, l]) => {
+    const r = h('tr'); const hc = h('th', '', l); hc.scope = 'row'; r.append(hc);
+    D.line_shift[k].forEach(v => {
+      const td = h('td'), mix = 8 + 92 * v / max, d = h('span', 'hc', v.toFixed(1) + '%');
+      d.style.background = `color-mix(in oklab, var(--crack) ${mix.toFixed(0)}%, var(--surface))`;
+      d.style.color = mix >= 55 ? 'var(--on-crack)' : 'var(--ink)';
+      td.append(d); r.append(td);
+    });
+    tb.append(r);
+  });
+  t.append(tb); wrap.append(t); sh.box.append(wrap);
+  sh.foot.textContent = `ไลน์ C กะดึกร้าวสูงสุดที่ ${pc(D.line_shift.Night[2])} ส่วนไลน์ A และ B ต่ำกว่า 3% ทุกกะ`;
+};
+
+/* 5a humidity x warehouse */
+CHARTS.humidity = el => {
+  const sh = shell(el, 'ความชื้นและฝน ส่งผลต่อสนิมไหม', '% ของแผ่นที่มีสนิม แยกตามความชื้นเฉลี่ยในช่วงที่เก็บ');
+  setLegend(sh, [{ label: 'โรงเรือนเปิด', color: 'var(--rust)' }, { label: 'ในอาคาร', color: 'var(--neutral)' }]);
+  const o = rh['Open-air shed'], i2 = rh['Indoor'], cats = D.labels.hum.map(x => x + '%');
+  sh.foot.textContent = `ความชื้น 80% ขึ้นไป ทำให้โรงเรือนเปิดมีสนิม ${pc(o.true_rust[3])} แต่ในอาคารยังอยู่ที่ ${pc(i2.true_rust[3])}`;
+  tableToggle(sh, () => ({ head: ['ความชื้นเฉลี่ย', 'โรงเรือนเปิด (%)', 'แผ่น', 'ในอาคาร (%)', 'แผ่น'], rows: cats.map((c, i) => [c, o.true_rust[i].toFixed(1), fmtN(o.n[i]), i2.true_rust[i].toFixed(1), fmtN(i2.n[i])]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats, aria: 'กราฟแท่งอัตราสนิมตามความชื้นเฉลี่ย แยกโรงเรือนเปิดและในอาคาร', h: 280,
+    series: [{ name: 'โรงเรือนเปิด', color: 'var(--rust)', vals: o.true_rust, n: o.n }, { name: 'ในอาคาร', color: 'var(--neutral)', vals: i2.true_rust, n: i2.n }],
+    labelSel: [[0, 3], [1, 3]]
+  }));
+};
+
+/* 5b supplier */
+CHARTS.supplier = el => {
+  const sh = shell(el, 'ซัพพลายเออร์วัตถุดิบ ส่งผลไหม', '% ของแผ่นที่มีตำหนิ แยกตามผู้ขายวัตถุดิบ');
+  setLegend(sh, [{ label: 'สนิม', color: 'var(--rust)' }, { label: 'รอยร้าว', color: 'var(--crack)' }]);
+  const Sp = D.supplier, all = [...Sp.rust, ...Sp.crack];
+  sh.foot.textContent = `ทั้งสามรายอยู่ในช่วง ${Math.min(...all).toFixed(1)}–${Math.max(...all).toFixed(1)}% ไม่มีรายไหนต่างจากรายอื่นชัดเจน`;
+  tableToggle(sh, () => ({ head: ['ผู้ขาย', 'สนิม (%)', 'รอยร้าว (%)'], rows: Sp.keys.map((k, i) => [k, Sp.rust[i].toFixed(1), Sp.crack[i].toFixed(1)]) }));
+  const iMin = Sp.rust.indexOf(Math.min(...Sp.rust)), iMax = Sp.crack.indexOf(Math.max(...Sp.crack));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats: Sp.keys, aria: 'กราฟแท่งอัตราสนิมและรอยร้าวตามผู้ขายวัตถุดิบ', h: 280,
+    series: [{ name: 'สนิม', color: 'var(--rust)', vals: Sp.rust }, { name: 'รอยร้าว', color: 'var(--crack)', vals: Sp.crack }],
+    labelSel: [[0, iMin], [1, iMax]]
+  }));
+};
+
+/* 5c same season */
+CHARTS.season = el => {
+  const sh = shell(el, 'ฤดูฝนเดียวกัน ก่อนและหลังแก้ไข', '% ของแผ่นที่มีสนิม เทียบเดือนเดียวกัน ใต้ชื่อเดือนคือความชื้นเฉลี่ย (2025 → 2026)');
+  setLegend(sh, [{ label: 'มิ.ย.–ก.ย. 2025 ก่อนแก้ไข', color: 'var(--neutral)' }, { label: 'มิ.ย.–ก.ย. 2026 หลังแก้ไข', color: 'var(--ai)' }]);
+  const ks = ['06', '07', '08', '09'], Sx = D.season, sa = D.season_all;
+  sh.foot.textContent = `ความชื้นเฉลี่ยใกล้เคียงเดิม (${sa.hum25}% → ${sa.hum26}%) แต่สนิมลดจาก ${pc(sa.rust25)} เหลือ ${pc(sa.rust26)} แสดงว่าคุมได้ด้วยวิธีเก็บ`;
+  tableToggle(sh, () => ({ head: ['เดือน', 'สนิม 2025 (%)', 'สนิม 2026 (%)', 'ความชื้น 2025 (%)', 'ความชื้น 2026 (%)', 'ฝน 2025 (มม.)', 'ฝน 2026 (มม.)'], rows: ks.map(k => [MT[+k - 1], Sx[k].rust25.toFixed(1), Sx[k].rust26.toFixed(1), Sx[k].hum25.toFixed(0), Sx[k].hum26.toFixed(0), fmtN(Sx[k].rain25), fmtN(Sx[k].rain26)]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats: ks.map(k => MT[+k - 1]), catSub: ks.map(k => `ชื้น ${Sx[k].hum25.toFixed(0)} → ${Sx[k].hum26.toFixed(0)}%`),
+    aria: 'กราฟแท่งอัตราสนิมเดือนมิถุนายนถึงกันยายน เทียบปี 2025 และ 2026', h: 290,
+    series: [{ name: '2025 ก่อนแก้ไข', color: 'var(--neutral)', vals: ks.map(k => Sx[k].rust25) }, { name: '2026 หลังแก้ไข', color: 'var(--ai)', vals: ks.map(k => Sx[k].rust26) }],
+    labelSel: [[0, 1], [1, 1]],
+    extra: ci => [{ k: 'ฝนรวม 2025 → 2026', v: `${fmtN(Sx[ks[ci]].rain25)} → ${fmtN(Sx[ks[ci]].rain26)} มม.` }]
+  }));
+};
+
+/* 6 escaped plates by month */
+CHARTS.escaped = el => {
+  const sh = shell(el, 'แผ่นตำหนิที่หลุดถึงลูกค้ารายเดือน', 'จำนวนแผ่นที่มีสนิมหรือรอยร้าวแต่ตรวจไม่พบ');
+  setLegend(sh, [{ label: 'ตรวจด้วยคน', color: 'var(--neutral)' }, { label: 'ตรวจด้วย AI', color: 'var(--ai)' }]);
+  const E = D.monthly.escaped, iMax = E.indexOf(Math.max(...E));
+  const aiMonths = E.slice(12).reduce((a, b) => a + b, 0);
+  sh.foot.textContent = `ก่อนใช้ระบบหลุดเฉลี่ย ${(E.slice(0, 12).reduce((a, b) => a + b, 0) / 12).toFixed(1)} แผ่นต่อเดือน หลังใช้ระบบรวม 12 เดือนหลุด ${aiMonths} แผ่น`;
+  tableToggle(sh, () => ({ head: ['เดือน', 'หลุดถึงลูกค้า (แผ่น)', 'เคลม (ครั้ง)', 'ค่าเคลม (บาท)', 'ตรวจพบ (%)'], rows: D.months.map((m, i) => [mlong(m), String(E[i]), String(D.monthly.claims[i]), fmtN(D.monthly.claim_cost[i]), D.monthly.detect[i].toFixed(1)]) }));
+  mountChart(sh.box, (b, w) => drawGrouped(b, w, {
+    cats: D.months.map(mshort), labelEvery: 3, l: 32, yfmt: v => v, fmt: v => String(v), aria: 'กราฟแท่งจำนวนแผ่นตำหนิที่หลุดถึงลูกค้ารายเดือน', h: 270,
+    series: [{ name: 'หลุดถึงลูกค้า (แผ่น)', vals: E, colors: D.months.map((m, i) => i < 12 ? 'var(--neutral)' : 'var(--ai)') }],
+    labelSel: [[0, iMax]], tipHead: ci => mlong(D.months[ci]),
+    extra: ci => [{ k: 'ลูกค้าเคลม', v: D.monthly.claims[ci] + ' ครั้ง' }, { k: 'ค่าเคลม', v: fmtN(D.monthly.claim_cost[ci]) + ' บาท' }, { k: 'ตรวจพบตำหนิ', v: D.monthly.detect[ci].toFixed(0) + '%' }]
+  }));
+};
+
+/* ---------- static fills ---------- */
+const T = {
+  plates: fmtN(D.dataset.plates),
+  c1h: `ก่อนมีระบบ ตำหนิ ${B.escaped} แผ่นถูกตรวจไม่พบ ใน 12 เดือน`,
+  c1p: `แผ่นเหล็ก 1 ใน ${Math.round(100 / B.defect_rate)} มีสนิมหรือรอยร้าว คนตรวจเจอ ${B.found_rate}% ส่วนที่เหลือถูกใช้ต่อ แล้วไปโผล่ตอนเข้าอู่หรือตอนถูกตรวจ`,
+  what: `ก่อนมีระบบ คนตรวจแผ่นละ ${B.sec_per_plate} วินาที และเจอตำหนิ ${B.found_rate}% ตั้งแต่ ต.ค. 2025 AI ตรวจแผ่นละ ${A.sec_per_plate} วินาที เจอ ${A.found_rate}%`,
+  hero: missedPct + '%',
+  dotFound: `ตรวจเจอ ${100 - missedPct} แผ่น`,
+  dotMiss: `หลุดไป ${missedPct} แผ่น ในทุก 100 แผ่นที่มีตำหนิ`,
+  c2h: 'สนิมพุ่งตามฤดูฝน รอยร้าวสูงตลอดปี และทั้งสองลดลงหลังมีระบบ',
+  c2p: `สนิมพุ่งถึง ${pc(rustP1[rustPeakI])} ในเดือน ${mthai(D.months[rustPeakI])} รอยร้าวสูงทุกเดือน AI ช่วยให้เห็นปัญหาตั้งแต่ ต.ค. 2025 แต่ตำหนิลดลงจริงเมื่อแก้ต้นเหตุ (ขั้นที่ 2 และ 3)`,
+  c3h: 'ตัวการอยู่ในโรงงานเอง: แผ่นกองกลางแจ้งนานเป็นสนิม เย็นตัวเร็วเกิน 11 °C/s ก็ร้าว',
+  c4h: 'ใช้ AI เห็นปัญหาเร็ว แล้วแก้ที่ต้นเหตุอีก 2 จุด',
+  c5h: `ต้นทุนความเสียหายลดลง ${costDrop}% และตรวจเร็วขึ้น ${speedX} เท่า`,
+  c6h: 'ก้าวต่อไป: ปิดจุดที่เหลือ และวัดค่าจอดอู่กับค่าปรับจริง',
+  foot1: `ข้อมูลจากไฟล์ steel_defect_dataset: ${fmtN(D.dataset.plates)} แผ่น · ${fmtN(D.dataset.spots)} จุดตำหนิ · ${D.dataset.days} วัน เป็นข้อมูลจำลอง ไม่ใช่ข้อมูลจริงของโรงงานใด`
+};
+document.querySelectorAll('[data-t]').forEach(e => { e.textContent = T[e.dataset.t]; });
+
+/* dots */
+(function () {
+  const d = document.getElementById('dots');
+  d.setAttribute('aria-label', `ในทุก 100 แผ่นที่มีตำหนิ ตรวจเจอ ${100 - missedPct} แผ่น หลุดไป ${missedPct} แผ่น`);
+  for (let i = 0; i < 100; i++) {
+    const s = document.createElement('i'); if (i >= 100 - missedPct) s.className = 'm'; d.append(s);
+  }
+  d.style.gridTemplateColumns = 'repeat(20,1fr)';
+})();
+
+/* fact rows */
+function facts(id, items) {
+  const box = document.getElementById(id);
+  items.forEach(it => { const f = h('div', 'fact'); f.append(h('div', 'l', it[0]), h('div', 'v', it[1]), h('div', 's', it[2])); box.append(f); });
+}
+facts('facts', [
+  ['มีสนิมหรือรอยร้าว', `${fmtN(B.defect_plates)} แผ่น`, `จาก ${fmtN(B.plates)} แผ่น (${B.defect_rate}%)`],
+  ['ตรวจไม่พบ', `${B.escaped} แผ่น`, 'ไม่ได้ซ่อมหรือคัดทิ้งก่อนใช้งาน'],
+  ['ลูกค้าเคลม', `${B.claims} ครั้ง`, `ค่าเคลม ${fmtM(B.claim_cost)} ล้านบาท`],
+  ['ต้นทุนซ่อมและตัดทิ้ง', `${fmtM(B.handling_cost)} ล้านบาท`, `ขัดซ่อม ${B.reworked} แผ่น · ตัดทิ้ง ${B.scrapped} แผ่น`]
+]);
+facts('facts6', [
+  ['ต้นทุนความเสียหายรวม (เคลม + ซ่อม + ตัดทิ้ง)', `${fmtM(costB)} → ${fmtM(costA)} ล้านบาท`, `ลดลง ${costDrop}%`],
+  ['ตำหนิที่ตรวจไม่พบ', `${B.escaped} → ${A.escaped} แผ่น`, `ลูกค้าเคลม ${B.claims} → ${A.claims} ครั้ง`],
+  ['เวลาตรวจต่อแผ่น', `${B.sec_per_plate} → ${A.sec_per_plate} วินาที`, `เร็วขึ้น ${speedX} เท่า · ชั่วโมงตรวจ ${B.insp_hours} → ${A.insp_hours} ต่อปี`]
+]);
+
+/* chapter 5: verdict + actions */
+(function () {
+  const vb = document.getElementById('verdict'), Sp = D.supplier, all = [...Sp.rust, ...Sp.crack];
+  [['yes', 'มีผล', `ความชื้นและฝน: ที่ความชื้น 80% ขึ้นไป โรงเรือนเปิดมีสนิม ${pc(rh['Open-air shed'].true_rust[3])} แต่ในอาคาร ${pc(rh['Indoor'].true_rust[3])} ภายนอกมีผลเมื่อแผ่นไม่มีการป้องกัน`],
+   ['no', 'ไม่มีผล', `ซัพพลายเออร์วัตถุดิบ: ทั้งสามรายมีอัตราตำหนิ ${Math.min(...all).toFixed(1)}–${Math.max(...all).toFixed(1)}% ใกล้เคียงกัน รอยร้าวจึงมาจากการเย็นตัวในโรงงาน`]
+  ].forEach(([c, l, t]) => {
+    const r = h('div', 'vrow'); r.append(h('span', 'chip ' + c, l), h('p', '', t)); vb.append(r);
+  });
+  const a = D.actions, sa = D.season_all, ab = document.getElementById('acts');
+  [
+    [1, 'ต.ค. 2025', 'ติดตั้ง AI ตรวจแผ่นทุกไลน์', [['เวลาตรวจต่อแผ่น', `${B.sec_per_plate} → ${A.sec_per_plate} วินาที`], ['ตรวจพบตำหนิ', `${B.found_rate}% → ${A.found_rate}%`], ['แผ่นหลุดถึงลูกค้า', `${B.escaped} → ${A.escaped} แผ่น`]]],
+    [2, 'ม.ค. 2026', 'ลดอัตราการเย็นตัวไลน์ C', [['อัตราการเย็นตัว', `${a.cool_c_before} → ${a.cool_c_after} °C/s`], ['รอยร้าวไลน์ C', `${pc(a.crack_c_before)} → ${pc(a.crack_c_after)}`]]],
+    [3, 'ก.พ. 2026', 'ย้ายเข้าคลังในอาคาร ห่อ VCI เข้าก่อนออกก่อน', [['แผ่นที่เก็บกลางแจ้ง', `${a.open_before}% → ${a.open_after}%`], ['วันเก็บเฉลี่ย', `${a.days_before} → ${a.days_after} วัน`], ['สนิมช่วงฝน มิ.ย.–ก.ย.', `${pc(sa.rust25)} → ${pc(sa.rust26)}`]]]
+  ].forEach(([n, d, t, rows]) => {
+    const li = h('li', 'act'), hd = h('div', 'act-h');
+    const head = h('div'); head.append(h('div', 'act-d', d), h('h3', '', t));
+    hd.append(h('span', 'ev', String(n)), head); li.append(hd);
+    rows.forEach(([k, v]) => { const r = h('div', 'mrow'); r.append(h('span', '', k), h('b', '', v)); li.append(r); });
+    ab.append(li);
+  });
+})();
+
+/* chapter 6: summary + next steps */
+(function () {
+  const a = D.actions, sm = document.getElementById('sum'), nx = document.getElementById('next');
+  [['yes', 'ปัญหา', `ตรวจช้า ตำหนิ ${B.escaped} แผ่นหลุดไปใช้งาน เสี่ยงให้เรือต้องจอดอู่นอกแผนและโดนปรับ`],
+   ['yes', 'ต้นเหตุ', 'สนิมมาจากการกองกลางแจ้ง รอยร้าวมาจากการเย็นตัวเร็วของไลน์ C ไม่เกี่ยวกับซัพพลายเออร์'],
+   ['yes', 'ผลลัพธ์', `AI จับตำหนิได้ ${pc(A.found_rate)} เหลือหลุด ${A.escaped} แผ่น ต้นทุนความเสียหายลด ${costDrop}% และตำหนิจริงเหลือ ${pc(A.defect_rate)}`]
+  ].forEach(([c, l, t]) => { const r = h('div', 'vrow'); r.append(h('span', 'chip ' + c, l), h('p', '', t)); sm.append(r); });
+  [[1, 'ทันที', 'ย้ายแผ่นที่เหลือเข้าอาคาร', [['เก็บกลางแจ้งอยู่', pc(a.open_after)], ['เป้าหมาย', 'ใกล้ 0%']]],
+   [2, 'ไตรมาสหน้า', 'ลดรอยร้าวไลน์ C ให้เท่าไลน์ A และ B', [['รอยร้าวไลน์ C', pc(a.crack_c_after)], ['ไลน์ A และ B', pc(D.by_line.crack[0])]]],
+   [3, 'ไตรมาสหน้า', 'ปรับโมเดลจับสนิมให้แม่นขึ้น', [['จับสนิมได้', pc(A.rust_det)], ['แจ้งเตือนผิด', pc(A.false_alarm_rate)]]],
+   [4, 'ต่อเนื่อง', 'ใส่ค่าจอดอู่และค่าปรับจริงเข้า Dashboard', [['ตอนนี้วัดได้', 'ค่าเคลมและค่าซ่อม'], ['ที่ยังขาด', 'ค่าจอดอู่ ค่าปรับ']]]
+  ].forEach(([n, d, t, rows]) => {
+    const li = h('li', 'act'), hd = h('div', 'act-h'), head = h('div');
+    head.append(h('div', 'act-d', d), h('h3', '', t)); hd.append(h('span', 'ev', String(n)), head); li.append(hd);
+    rows.forEach(([k, v]) => { const r = h('div', 'mrow'); r.append(h('span', '', k), h('b', '', v)); li.append(r); });
+    nx.append(li);
+  });
+})();
+
+/* ---------- build panels ---------- */
+document.querySelectorAll('[data-chart]').forEach(el => CHARTS[el.dataset.chart](el));
+
+/* ---------- chapter nav scroll-spy ---------- */
+(function () {
+  const links = [...document.querySelectorAll('#navlist a')];
+  const set = id => links.forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + id)));
+  set('c1');
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { set(e.target.id); const a = links.find(l => l.getAttribute('href') === '#' + e.target.id); if (a) a.scrollIntoView({ block: 'nearest', inline: 'center' }); } }), { rootMargin: '-35% 0px -60% 0px' });
+  document.querySelectorAll('.chap').forEach(s => io.observe(s));
+})();
+</script>
+
+</body></html>
